@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS family (
-    family_name text PRIMARY KEY,
+    family_name text PRIMARY KEY
 );
 
 CREATE TABLE IF NOT EXISTS genus (
@@ -23,4 +23,3 @@ INSERT INTO genus VALUES
 INSERT INTO species VALUES
     ('Tilia', 'Tilia europeae'),
     ('Tilia', 'Tilia tomentosa');
-

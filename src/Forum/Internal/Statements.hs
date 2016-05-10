@@ -1,6 +1,9 @@
 module Forum.Internal.Statements where
 
-with :: Statement s a Bool -> Statement s a a -> Statement s a a
-with s = _
+(.==) :: Statement st a b -> b -> Statement st a a
+(.==) = _
+
+moveSelectToWhere :: Statement a b -> ByteString -> Statement a a
+moveSelectToWhere (Statement stmt) cond = Statement $ \v ->
 
 -- groupBy, sum, etc.

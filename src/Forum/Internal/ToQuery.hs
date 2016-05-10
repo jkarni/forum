@@ -6,16 +6,17 @@ import Data.ByteString.Lazy (toStrict)
 import Text.Show.ByteString as BS
 import Forum.Internal.Types
 
+import Debug.Trace
 
 -- | The randomly generated string @jVc508YFgIwgy7lAmNXG@
 -- Don't otherwise use this string in your SQL!
 randomName :: Name
 randomName = CountName "jVc508YFgIwgy7lAmNXG" 0
 
-statementToQuery :: Statement st () b -> ByteString
-statementToQuery s = intercalate "\n" $ stmtToQuery <$> stmts
+statementToQuery :: Statement st () b -> (Name, ByteString)
+statementToQuery s = traceShowId $ (n, mconcat (stmtToQuery <$> stmts))
   where
-   (_, stmts) = getStatement s (randomName, [])
+   (n, stmts) = getStatement s (randomName, [])
 
 nameToQuery :: Name -> ByteString
 nameToQuery (SimpleName s) = s
@@ -23,11 +24,11 @@ nameToQuery (CountName s n) = s <> toStrict (BS.show n)
 
 stmtToQuery :: Stmt s -> ByteString
 stmtToQuery (CreateView n s)
-  = "CREATE TEMP VIEW " <> nameToQuery n <> " AS ( " <> selectToQuery s <> " <> );"
+  = "CREATE TEMP VIEW " <> nameToQuery n <> " AS ( " <> selectToQuery s <> " ); "
 
 selectToQuery :: Select -> ByteString
 selectToQuery (Select fields from where_)
-  = "SELECT " <> fieldsToQuery fields <> fromToQuery from <> whereToQuery where_
+  = "SELECT " <> fieldsToQuery fields <> " " <> fromToQuery from <> whereToQuery where_
 
 fieldsToQuery :: Fields -> ByteString
 fieldsToQuery Star = "*"

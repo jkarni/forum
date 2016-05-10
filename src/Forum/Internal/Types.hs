@@ -5,6 +5,7 @@ import Prelude hiding ((.), id)
 import Data.ByteString (ByteString)
 import Control.Category (Category(..))
 import GHC.Generics (Generic)
+import GHC.TypeLits (Symbol)
 import Data.String (IsString(..))
 
 data StatementType = UpdateStmt | QueryStmt
@@ -35,7 +36,11 @@ instance Monoid (Statement 'UpdateStmt a ()) where
     let (_, s1) = f (n, ss)
     in g (n, s1)
 
-newtype Key tbl a = Key { unKey :: a }
+-- | A key to some other table. Represents a "REFERENCES" in SQL.
+--
+-- Thus, @Key User "id" Int@ is a reference to the "id" key in the table for
+-- @User@.
+newtype Key tbl (ref :: Symbol) a = Key { unKey :: a }
   deriving (Functor, Eq, Show, Read, Generic, Num, Enum, Ord)
 
 
@@ -70,6 +75,10 @@ data WhereCls
   | InCls ByteString Select
   | NoWhereCls
   deriving (Eq, Show, Read, Generic)
+
+-- * SqlExpr
+
+
 
 -- * TH-related
 
