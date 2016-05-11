@@ -18,7 +18,8 @@ mkStmts n opts = do
       -> do
        fs <- mapM (mkField typName (TH.ConT typName) opts) fields
        f <- mkTable typName (TH.ConT typName) opts
-       inst <- mkHasTable typName opts
+       let fieldNames = (\(n, _, _) -> n) <$> fields
+       inst <- mkHasTable typName fieldNames opts
        return . concat $ inst : f : fs
     a -> fail $ show a
 
@@ -45,15 +46,22 @@ mkTable :: TH.Name -> TH.Type -> THOptions -> TH.Q [TH.Dec]
 mkTable typName otyp opts = do
   let name = TH.mkName $ tableFnRenamer opts (TH.nameBase typName)
   t <- [t| forall st. Statement st () $(return otyp) |]
-  d <- [d| $(TH.varP name) = mkTableStmt $ SimpleName $ tableName (Proxy :: Proxy $(TH.conT typName))
+  d <- [d| $(TH.varP name) = mkTableStmt tbl fields
+             where
+               proxy = Proxy :: Proxy $(TH.conT typName)
+               tbl = SimpleName $ tableName proxy
+               fields = SimpleName <$> tableFields proxy
     |]
   return $ TH.SigD name t : d
 
-mkHasTable :: TH.Name -> THOptions -> TH.Q [TH.Dec]
-mkHasTable typName opts = do
+mkHasTable :: TH.Name -> [TH.Name] -> THOptions -> TH.Q [TH.Dec]
+mkHasTable typName fields opts = do
   let dbname = tableDbRenamer opts (TH.nameBase typName)
+      fields' = dbRenamer opts (TH.nameBase typName) . TH.nameBase <$> fields
+      fieldExps = TH.ListE (TH.LitE . TH.StringL <$> fields')
   [d| instance HasTable $(TH.conT typName) where
         tableName = const $ fromString $(TH.litE $ TH.StringL dbname)
+        tableFields _ = fromString <$> $(return fieldExps)
     |]
 
 

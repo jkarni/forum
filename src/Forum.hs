@@ -12,10 +12,17 @@ module Forum
  , settings
  , acquire
  , release
+
+ , set
+
+ , (#)
  )
 where
 
-import Prelude ()
+import Prelude (flip)
 import Forum.Internal
 import Control.Category (Category(..))
 import Hasql.Connection (Connection, settings, acquire, release)
+
+(#) :: Category cat => cat a b -> cat b c -> cat a c
+(#) = flip (.)

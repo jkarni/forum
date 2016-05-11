@@ -38,3 +38,6 @@ instance Decodable TimeOfDay where
   decode = Hasql.rowsList $ Hasql.value def
 instance Decodable LocalTime where
   decode = Hasql.rowsList $ Hasql.value def
+
+instance Decodable () where
+  decode = const [] <$> Hasql.unit

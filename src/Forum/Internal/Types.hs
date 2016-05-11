@@ -8,6 +8,8 @@ import GHC.Generics (Generic)
 import GHC.TypeLits (Symbol)
 import Data.String (IsString(..))
 
+import Forum.Internal.Encodable
+
 data StatementType = UpdateStmt | QueryStmt
   deriving (Eq, Show, Read, Generic)
 
@@ -20,7 +22,7 @@ instance IsString Name where
   fromString = SimpleName . fromString
 
 data Statement (st :: StatementType) a b
-  = Statement { getStatement :: (Name, [Stmt st]) -> (Name, [Stmt st])}
+  = Statement { getStatement :: (Name, [Name], [Stmt st]) -> (Name, [Name], [Stmt st])}
   deriving (Generic)
 
 instance Category (Statement st) where
@@ -32,9 +34,9 @@ instance Monoid (Statement 'UpdateStmt a ()) where
   --  The requirement here is that a @Statement s () x@ will never make
   --  assumptions about what table it gets. This seems sensible, but it still
   --  deserves to be documented here.
-  Statement f `mappend` Statement g = Statement $ \(n, ss) ->
-    let (_, s1) = f (n, ss)
-    in g (n, s1)
+  Statement f `mappend` Statement g = Statement $ \(n, ns, ss) ->
+    let (_, _, s1) = f (n, ns, ss)
+    in g (n, ns, s1)
 
 -- | A key to some other table. Represents a "REFERENCES" in SQL.
 --
@@ -49,10 +51,11 @@ newtype Key tbl (ref :: Symbol) a = Key { unKey :: a }
 
 data Stmt (st :: StatementType) where
   CreateView :: Name -> Select -> Stmt st
+  Update     :: Encodable a => Name -> [Name] -> a -> Stmt UpdateStmt
 
 
-data Select =
-  Select Fields FromCls WhereCls
+data Select
+  = Select Fields FromCls WhereCls
   deriving (Eq, Show, Read, Generic)
 
 

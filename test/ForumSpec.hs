@@ -33,11 +33,11 @@ spec = describe "forum" $ before createTestDb $ do
   context "querying" $ do
 
     it "allows querying" $ \conn -> do
-      run conn (speciesName_ . species)
+      run conn (species # speciesName_)
         `shouldReturn` Right ["Tilia europeae", "Tilia tomentosa"]
 
     it "allows querying over keys" $ \conn -> do
-      run conn (familyName_ . genusFamily_ . speciesGenus_ . species)
+      run conn (species # speciesGenus_ # genusFamily_ # familyName_ )
         `shouldReturn` Right ["Malvacea", "Malvacea"]
 
     {-it "allows querying for keys" $ \conn -> do-}
@@ -51,17 +51,20 @@ spec = describe "forum" $ before createTestDb $ do
 
   {-context "setting" $ do-}
 
-    {-it "allows setting" $ \conn -> do-}
-      {-run conn $ (speciesName_ <== "Tilia cordata") . species-}
-      {-run conn (speciesName_  . species)-}
-        {-`shouldReturn` Right ["Tilia cordata", "Tilia cordata"]-}
+    {-
+    -- this works but can only properly be tested with 'with'
+    it "allows setting" $ \conn -> do
+      run conn $ species # speciesName_ # set "Tilia cordata"
+        `shouldReturn` Right []
+      run conn (species # speciesName_)
+        `shouldReturn` Right ["Tilia cordata", "Tilia cordata"]
+        -}
 
 createTestDb :: IO Connection
 createTestDb = do
   callCommand dropCmd
   callCommand createCmd
   schemaFile <- getDataFileName "test/schema.sql"
-  print schemaFile
   callCommand $ "psql --file '" ++ schemaFile
              ++ "' forum-test >/dev/null 2>/dev/null"
   econn <- acquire info

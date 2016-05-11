@@ -1,24 +1,32 @@
 module Forum.Internal.Statements where
 
-(.==) :: Encodable b => Statement st a b -> b -> Statement st a a
-(.==) = _
+import Forum.Internal.Encodable
+import Forum.Internal.Types
+import Forum.Internal.Utils
 
-distinct :: Statement st a a
-distinct = _
+set :: Encodable a => a -> Statement UpdateStmt a ()
+set = addUpdate
 
-limit :: Int -> Statement st a a
-limit = _
+{-(.==) :: Encodable b => Statement st a b -> b -> Statement st a a-}
+{-(.==) = _-}
 
-offset :: Int -> Statement st a a
-offset = _
+{-distinct :: Statement st a a-}
+{-distinct = _-}
 
-ascendingBy :: Statement a b -> Statement a a
-ascendingBy = _
+{-limit :: Int -> Statement st a a-}
+{-limit = _-}
 
-descendingBy :: Statement a b -> Statement a a
-descendingBy = _
+{-offset :: Int -> Statement st a a-}
+{-offset = _-}
 
-moveSelectToWhere :: Statement a b -> ByteString -> Statement a a
-moveSelectToWhere (Statement stmt) cond = Statement $ \v ->
+{-ascendingBy :: Statement a b -> Statement a a-}
+{-ascendingBy = _-}
+
+{-descendingBy :: Statement a b -> Statement a a-}
+{-descendingBy = _-}
+
+
+{-moveSelectToWhere :: Statement a b -> ByteString -> Statement a a-}
+{-moveSelectToWhere (Statement stmt) cond = Statement $ \v ->-}
 
 -- groupBy, suniqueum, etc.

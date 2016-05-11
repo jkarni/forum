@@ -6,3 +6,4 @@ import Data.ByteString (ByteString)
 class HasTable a where
   -- | Name of corresponding table in DB
   tableName :: proxy a -> ByteString
+  tableFields :: proxy a -> [ByteString]

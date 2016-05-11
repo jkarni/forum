@@ -5,6 +5,13 @@ import Data.ByteString
 import Data.ByteString.Lazy (toStrict)
 import Text.Show.ByteString as BS
 import Forum.Internal.Types
+import Forum.Internal.Encodable
+import Forum.Internal.Decodable
+
+import qualified Hasql.Session as Hasql
+import qualified Hasql.Query as Hasql
+import qualified Hasql.Decoders as Hasql
+
 
 import Debug.Trace
 
@@ -13,18 +20,25 @@ import Debug.Trace
 randomName :: Name
 randomName = CountName "jVc508YFgIwgy7lAmNXG" 0
 
-statementToQuery :: Statement st () b -> (Name, ByteString)
-statementToQuery s = traceShowId $ (n, mconcat (stmtToQuery <$> stmts))
+statementToQuery :: Statement st () b -> (Name, Hasql.Session ())
+statementToQuery s = (n, sequence_ (stmtToQuery <$> stmts))
   where
-   (n, stmts) = getStatement s (randomName, [])
+   (n, ns, stmts) = getStatement s (randomName, [], [])
+
+stmtToQuery :: Stmt s -> Hasql.Session ()
+stmtToQuery (CreateView n s)
+  = Hasql.sql $ traceShowId
+    $ "CREATE TEMP VIEW "
+    <> nameToQuery n <> " AS ( " <> selectToQuery s <> " ); "
+stmtToQuery (Update n ns v)
+  = Hasql.query v $ Hasql.statement stmt encode Hasql.unit True
+  where
+    stmt = traceShowId $
+     "UPDATE " <> nameToQuery n <> " SET " <> intercalate ", " (nameToQuery <$> ns) <> " = $1;"
 
 nameToQuery :: Name -> ByteString
 nameToQuery (SimpleName s) = s
 nameToQuery (CountName s n) = s <> toStrict (BS.show n)
-
-stmtToQuery :: Stmt s -> ByteString
-stmtToQuery (CreateView n s)
-  = "CREATE TEMP VIEW " <> nameToQuery n <> " AS ( " <> selectToQuery s <> " ); "
 
 selectToQuery :: Select -> ByteString
 selectToQuery (Select fields from where_)
@@ -32,7 +46,7 @@ selectToQuery (Select fields from where_)
 
 fieldsToQuery :: Fields -> ByteString
 fieldsToQuery Star = "*"
-fieldsToQuery (Fields fs) = "( " <> intercalate "," (nameToQuery <$> fs) <> ")"
+fieldsToQuery (Fields fs) = " " <> intercalate ", " (nameToQuery <$> fs) <> ""
 
 whereToQuery :: WhereCls -> ByteString
 whereToQuery NoWhereCls = " "
