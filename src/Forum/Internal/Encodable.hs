@@ -6,14 +6,20 @@ import Data.Time (DiffTime, UTCTime, Day, TimeOfDay, LocalTime)
 import Data.Text (Text)
 import Data.ByteString (ByteString)
 import Data.Functor.Contravariant.Generic
+import Data.Functor.Contravariant (Op(..))
 import Data.Int (Int16, Int32, Int64)
 import Data.Proxy (Proxy(..))
+import Data.Monoid (Sum(..))
 
 class Encodable a where
   encode :: Hasql.Params a
   default encode :: Deciding Encodable a => Hasql.Params a
   encode = deciding (Proxy :: Proxy Encodable) encode
-  fieldCount :: proxy a -> Int
+  fieldCount :: a -> Int
+  -- Not sure this is right for sum types etc.
+  default fieldCount :: Deciding (Eq) a => a -> Int
+  fieldCount x = getSum $ getOp (deciding (Proxy :: Proxy Eq)
+                                (Op $ \_ -> Sum 1) ) x
 
 instance Encodable Char where
   encode = Hasql.value def

@@ -13,25 +13,16 @@ import Paths_forum
 data Species = Species
   { speciesName  :: Text
   , speciesGenus :: Key Genus "genus_name" Text
-  } deriving (Eq, Show, Read, Generic)
-
-instance Encodable Species where
-  fieldCount _ = 2
+  } deriving (Eq, Show, Read, Generic, Encodable)
 
 data Genus = Genus
   { genusName   :: Text
   , genusFamily :: Key Family "family_name" Text
-  } deriving (Eq, Show, Read, Generic)
-
-instance Encodable Genus where
-  fieldCount _ = 2
+  } deriving (Eq, Show, Read, Generic, Encodable)
 
 data Family = Family
   { familyName   :: Text
-  } deriving (Eq, Show, Read, Generic)
-
-instance Encodable Family where
-  fieldCount _ = 1
+  } deriving (Eq, Show, Read, Generic, Encodable)
 
 mkStmts ''Species defaultTHOptions
 mkStmts ''Genus defaultTHOptions

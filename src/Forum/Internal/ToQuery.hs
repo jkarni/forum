@@ -1,10 +1,10 @@
 module Forum.Internal.ToQuery where
 
 import Data.Monoid
+import Data.Proxy (Proxy(..))
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
 import Data.ByteString.Lazy (toStrict)
-import Control.Monad.Identity (Identity(..))
 import qualified Text.Show.ByteString as BS
 import Forum.Internal.Types
 import Forum.Internal.Encodable
@@ -45,7 +45,7 @@ stmtToQuery (Insert n v)
   = Hasql.query v $ Hasql.statement stmt encode Hasql.unit True
   where
     addOne new old = old <> ", $" <> toStrict (BS.show new) -- <> ", $" <> old
-    mkParams = BS.drop 1 $ foldr addOne "" $ reverse [1 .. (fieldCount $ Identity v)]
+    mkParams = BS.drop 1 $ foldr addOne "" $ reverse [1 .. (fieldCount v)]
     stmt = traceShowId $
      "INSERT INTO " <> nameToQuery n <>
      " VALUES ( " <> mkParams <> " );"
