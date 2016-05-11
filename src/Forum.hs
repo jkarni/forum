@@ -8,6 +8,7 @@ module Forum
  , Statement(..)
  , StatementType(..)
  , run
+ , run_
  , Category(..)
  , Connection
  , settings

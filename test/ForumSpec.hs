@@ -15,6 +15,9 @@ data Species = Species
   , speciesGenus :: Key Genus "genus_name" Text
   } deriving (Eq, Show, Read, Generic, Encodable)
 
+instance Decodable Species where
+  decode = Species <$> decode <*> decode
+
 data Genus = Genus
   { genusName   :: Text
   , genusFamily :: Key Family "family_name" Text
@@ -36,6 +39,10 @@ spec = describe "forum" $ before createTestDb $ after release $ do
     it "allows querying" $ \conn -> do
       run conn (species # speciesName_)
         `shouldReturn` Right ["Tilia europeae", "Tilia tomentosa"]
+
+    it "allows querying complex types" $ \conn -> do
+      Right x <- run conn species
+      length x `shouldBe` 2
 
     it "allows querying over keys" $ \conn -> do
       run conn (species # speciesGenus_ # genusFamily_ # familyName_ )
@@ -64,15 +71,15 @@ spec = describe "forum" $ before createTestDb $ after release $ do
   context "inserting" $ do
 
     it "allows inserting" $ \conn -> do
-      run conn (species # insert (Species "new" (Key "Tilia")))
-       `shouldReturn` Right []
+      run_ conn (species # insert (Species "new" (Key "Tilia")))
+       `shouldReturn` Nothing
       run conn (species # speciesName_)
        `shouldReturn` Right ["Tilia europeae", "Tilia tomentosa", "new"]
 
   context "deleting" $ do
 
     it "allows deleting" $ \conn -> do
-      run conn (species # delete) `shouldReturn` Right []
+      run_ conn (species # delete) `shouldReturn` Nothing
       run conn (species # speciesName_) `shouldReturn` Right []
 
 

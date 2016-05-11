@@ -9,6 +9,7 @@ import GHC.TypeLits (Symbol)
 import Data.String (IsString(..))
 
 import Forum.Internal.Encodable
+import Forum.Internal.Decodable
 
 data StatementType = UpdateStmt | QueryStmt
   deriving (Eq, Show, Read, Generic)
@@ -48,6 +49,8 @@ newtype Key tbl (ref :: Symbol) a = Key { unKey :: a }
 instance Encodable a => Encodable (Key tbl ref a) where
   fieldCount _ = 1
 
+instance Decodable a => Decodable (Key tbl ref a) where
+  decode = Key <$> decode
 
 
 -- * SQL AST

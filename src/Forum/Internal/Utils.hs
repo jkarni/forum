@@ -9,6 +9,7 @@ import GHC.TypeLits (KnownSymbol, symbolVal)
 import qualified Hasql.Query as Hasql
 import qualified Hasql.Session as Hasql
 import qualified Hasql.Encoders as Hasql
+import qualified Hasql.Decoders as Hasql (rowsList)
 import qualified Hasql.Connection as Hasql
 
 import Forum.Internal.Types
@@ -69,9 +70,18 @@ run conn s = Hasql.run go conn
       -- TODO - this should only happen if we want a result.
       result <- Hasql.query () $ Hasql.statement
         (selectToQuery $ Select Star (FromCls n) NoWhereCls)
-        Hasql.unit decode True
+        Hasql.unit (Hasql.rowsList decode) True
       mapM dropView $ reverse $ namesTill n
       return result
+
+run_ :: Hasql.Connection -> Statement st () () -> IO (Maybe Hasql.Error)
+run_ conn s = either Just (const Nothing) <$> Hasql.run go conn
+  where
+    dropView name = Hasql.sql $ "DROP VIEW IF EXISTS " <> nameToQuery name <> " CASCADE;"
+    go = do
+      let (n, q) = statementToQuery s
+      q
+      mapM dropView $ reverse $ namesTill n
 
 unTitleCase :: String -> String
 unTitleCase (x:xs) = toLower x : xs
