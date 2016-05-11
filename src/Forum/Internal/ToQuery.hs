@@ -1,9 +1,11 @@
 module Forum.Internal.ToQuery where
 
 import Data.Monoid
-import Data.ByteString
+import Data.ByteString (ByteString)
+import qualified Data.ByteString as BS
 import Data.ByteString.Lazy (toStrict)
-import Text.Show.ByteString as BS
+import Control.Monad.Identity (Identity(..))
+import qualified Text.Show.ByteString as BS
 import Forum.Internal.Types
 import Forum.Internal.Encodable
 import Forum.Internal.Decodable
@@ -38,13 +40,15 @@ stmtToQuery (Update n ns v)
   where
     stmt = traceShowId $
      "UPDATE " <> nameToQuery n <>
-     " SET " <> intercalate ", " (nameToQuery <$> ns) <> " = $1;"
+     " SET " <> BS.intercalate ", " (nameToQuery <$> ns) <> " = $1;"
 stmtToQuery (Insert n v)
   = Hasql.query v $ Hasql.statement stmt encode Hasql.unit True
   where
+    addOne new old = old <> ", $" <> toStrict (BS.show new) -- <> ", $" <> old
+    mkParams = BS.drop 1 $ foldr addOne "" $ reverse [1 .. (fieldCount $ Identity v)]
     stmt = traceShowId $
      "INSERT INTO " <> nameToQuery n <>
-     " VALUES ($1, $2);"
+     " VALUES ( " <> mkParams <> " );"
 
 nameToQuery :: Name -> ByteString
 nameToQuery (SimpleName s) = s
@@ -56,7 +60,7 @@ selectToQuery (Select fields from where_)
 
 fieldsToQuery :: Fields -> ByteString
 fieldsToQuery Star = "*"
-fieldsToQuery (Fields fs) = " " <> intercalate ", " (nameToQuery <$> fs) <> ""
+fieldsToQuery (Fields fs) = " " <> BS.intercalate ", " (nameToQuery <$> fs) <> ""
 
 whereToQuery :: WhereCls -> ByteString
 whereToQuery NoWhereCls = " "

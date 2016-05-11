@@ -43,7 +43,10 @@ instance Monoid (Statement 'UpdateStmt a ()) where
 -- Thus, @Key User "id" Int@ is a reference to the "id" key in the table for
 -- @User@.
 newtype Key tbl (ref :: Symbol) a = Key { unKey :: a }
-  deriving (Functor, Eq, Show, Read, Generic, Num, Enum, Ord, Encodable)
+  deriving (Functor, Eq, Show, Read, Generic, Num, Enum, Ord)
+
+instance Encodable a => Encodable (Key tbl ref a) where
+  fieldCount _ = 1
 
 
 
