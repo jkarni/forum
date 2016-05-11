@@ -30,22 +30,31 @@ mkStmts ''Family defaultTHOptions
 spec :: Spec
 spec = describe "forum" $ before createTestDb $ do
 
-  it "allows querying" $ \conn -> do
-    run conn (speciesName_ . species)
-      `shouldReturn` Right ["Tilia europeae", "Tilia tomentosa"]
+  context "querying" $ do
 
-  it "allows querying over keys" $ \conn -> do
-    run conn (familyName_ . genusFamily_ . speciesGenus_ . species)
-      `shouldReturn` Right ["Malvacea", "Malvacea"]
+    it "allows querying" $ \conn -> do
+      run conn (speciesName_ . species)
+        `shouldReturn` Right ["Tilia europeae", "Tilia tomentosa"]
 
-  {-it "allows querying for keys" $ \conn -> do-}
-    {-run conn $ species . genus . familyKey-}
+    it "allows querying over keys" $ \conn -> do
+      run conn (familyName_ . genusFamily_ . speciesGenus_ . species)
+        `shouldReturn` Right ["Malvacea", "Malvacea"]
 
-  it "allows filtering" $ \conn -> do
-    run conn $ speciesName_
-             . speciesName_ .== "Tilia europeae"
-             . species
-      `shouldReturn` Right ["Tilia europeae"]
+    {-it "allows querying for keys" $ \conn -> do-}
+      {-run conn $ species . genus . familyKey-}
+
+    {-it "allows filtering" $ \conn -> do-}
+      {-run conn $ speciesName_-}
+               {-. (speciesName_ .== "Tilia europeae")-}
+               {-. species-}
+        {-`shouldReturn` Right ["Tilia europeae"]-}
+
+  {-context "setting" $ do-}
+
+    {-it "allows setting" $ \conn -> do-}
+      {-run conn $ (speciesName_ <== "Tilia cordata") . species-}
+      {-run conn (speciesName_  . species)-}
+        {-`shouldReturn` Right ["Tilia cordata", "Tilia cordata"]-}
 
 createTestDb :: IO Connection
 createTestDb = do
