@@ -43,7 +43,7 @@ instance Monoid (Statement 'UpdateStmt a ()) where
 -- Thus, @Key User "id" Int@ is a reference to the "id" key in the table for
 -- @User@.
 newtype Key tbl (ref :: Symbol) a = Key { unKey :: a }
-  deriving (Functor, Eq, Show, Read, Generic, Num, Enum, Ord)
+  deriving (Functor, Eq, Show, Read, Generic, Num, Enum, Ord, Encodable)
 
 
 
@@ -52,6 +52,7 @@ newtype Key tbl (ref :: Symbol) a = Key { unKey :: a }
 data Stmt (st :: StatementType) where
   CreateView :: Name -> Select -> Stmt st
   Update     :: Encodable a => Name -> [Name] -> a -> Stmt UpdateStmt
+  Insert     :: Encodable a => Name -> a -> Stmt UpdateStmt
 
 
 data Select

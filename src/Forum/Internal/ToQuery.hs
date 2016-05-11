@@ -20,6 +20,9 @@ import Debug.Trace
 randomName :: Name
 randomName = CountName "jVc508YFgIwgy7lAmNXG" 0
 
+namesTill :: Name -> [Name]
+namesTill (CountName x n) = [CountName x n' | n' <- [1..n]]
+
 statementToQuery :: Statement st () b -> (Name, Hasql.Session ())
 statementToQuery s = (n, sequence_ (stmtToQuery <$> stmts))
   where
@@ -34,7 +37,14 @@ stmtToQuery (Update n ns v)
   = Hasql.query v $ Hasql.statement stmt encode Hasql.unit True
   where
     stmt = traceShowId $
-     "UPDATE " <> nameToQuery n <> " SET " <> intercalate ", " (nameToQuery <$> ns) <> " = $1;"
+     "UPDATE " <> nameToQuery n <>
+     " SET " <> intercalate ", " (nameToQuery <$> ns) <> " = $1;"
+stmtToQuery (Insert n v)
+  = Hasql.query v $ Hasql.statement stmt encode Hasql.unit True
+  where
+    stmt = traceShowId $
+     "INSERT INTO " <> nameToQuery n <>
+     " VALUES ($1, $2);"
 
 nameToQuery :: Name -> ByteString
 nameToQuery (SimpleName s) = s

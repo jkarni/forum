@@ -7,6 +7,9 @@ import Forum.Internal.Utils
 set :: Encodable a => a -> Statement UpdateStmt a ()
 set = addUpdate
 
+insert :: Encodable a => a -> Statement UpdateStmt a ()
+insert = addInsert
+
 {-(.==) :: Encodable b => Statement st a b -> b -> Statement st a a-}
 {-(.==) = _-}
 

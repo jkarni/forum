@@ -1,5 +1,6 @@
 module Forum
  ( Decodable(..)
+ , Encodable(..)
  , mkStmts
  , Key(..)
  , THOptions(..)
@@ -14,6 +15,7 @@ module Forum
  , release
 
  , set
+ , insert
 
  , (#)
  )

@@ -42,3 +42,4 @@ instance Encodable TimeOfDay where
   encode = Hasql.value def
 instance Encodable LocalTime where
   encode = Hasql.value def
+

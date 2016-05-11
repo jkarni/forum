@@ -28,6 +28,7 @@ library
                      , DataKinds
                      , KindSignatures
                      , ScopedTypeVariables
+                     , BangPatterns
                      , FlexibleInstances
                      , FlexibleContexts
                      , GADTs
@@ -44,6 +45,7 @@ library
                      , text == 1.2.*
                      , bytestring-show == 0.3.*
                      , contravariant == 1.4.*
+                     , postgresql-libpq == 0.9.*
   hs-source-dirs:      src
   default-language:    Haskell2010
 
@@ -68,6 +70,7 @@ test-suite spec
                      , TypeFamilies
                      , TemplateHaskell
                      , OverloadedStrings
+                     , DeriveAnyClass
   build-depends:       base == 4.*
                      , forum
                      , hspec == 2.*

@@ -3,6 +3,7 @@ module ForumSpec (spec) where
 
 import Prelude hiding ((.))
 import Data.Text (Text)
+import GHC.Generics (Generic)
 import System.Process
 import Test.Hspec
 
@@ -12,23 +13,23 @@ import Paths_forum
 data Species = Species
   { speciesName  :: Text
   , speciesGenus :: Key Genus "genus_name" Text
-  } deriving (Eq, Show, Read)
+  } deriving (Eq, Show, Read, Generic, Encodable)
 
 data Genus = Genus
   { genusName   :: Text
   , genusFamily :: Key Family "family_name" Text
-  } deriving (Eq, Show, Read)
+  } deriving (Eq, Show, Read, Generic, Encodable)
 
 data Family = Family
   { familyName   :: Text
-  } deriving (Eq, Show, Read)
+  } deriving (Eq, Show, Read, Generic, Encodable)
 
 mkStmts ''Species defaultTHOptions
 mkStmts ''Genus defaultTHOptions
 mkStmts ''Family defaultTHOptions
 
 spec :: Spec
-spec = describe "forum" $ before createTestDb $ do
+spec = describe "forum" $ before createTestDb $ after release $ do
 
   context "querying" $ do
 
@@ -59,6 +60,15 @@ spec = describe "forum" $ before createTestDb $ do
       run conn (species # speciesName_)
         `shouldReturn` Right ["Tilia cordata", "Tilia cordata"]
         -}
+
+  context "inserting" $ do
+
+    it "allows inserting" $ \conn -> do
+      run conn (species # insert (Species "new" (Key "Tilia")))
+       `shouldReturn` Right []
+      run conn (species # speciesName_)
+       `shouldReturn` Right ["Tilia europeae", "Tilia tomentosa", "new"]
+
 
 createTestDb :: IO Connection
 createTestDb = do

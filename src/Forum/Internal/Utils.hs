@@ -27,7 +27,12 @@ addSelect f = Statement $ (\(n, ns, ss) ->
   in (nextName n, ns', ss ++ [CreateView (nextName n) sel]))
 
 addUpdate :: Encodable a => a -> Statement UpdateStmt a ()
-addUpdate a = Statement $ (\(n, ns, ss) -> (nextName n, [], ss ++ [Update n ns a]))
+addUpdate a = Statement $ (\(n, ns, ss) ->
+  (nextName n, [], ss ++ [Update n ns a]))
+
+addInsert :: Encodable a => a -> Statement UpdateStmt a ()
+addInsert as = Statement $ (\(n, ns, ss) ->
+  (n, [], ss ++ [Insert n as]))
 
 mkTableStmt :: Name -> [Name] -> Statement st a b
 mkTableStmt n ns = addSelect $ \_ _ -> (Select (Fields ns) (FromCls n) NoWhereCls, ns)
@@ -43,7 +48,7 @@ mkFKStmt :: forall st a b field v. (KnownSymbol field, HasTable b)
 mkFKStmt _ name = addSelect $ \tbl _ ->
   (Select (Fields [ntStar]) (InnerJoin tbl nt
                       $ On (addField tbl (nameToQuery name)) (addField nt fName)) NoWhereCls
-  , []) -- TODO
+  , SimpleName <$> tableFields (Proxy :: Proxy b))
   where
     nt = SimpleName $ tableName (Proxy :: Proxy b)
     ntStar = SimpleName $ tableName (Proxy :: Proxy b) <> ".*"
@@ -55,12 +60,16 @@ mkFKStmt _ name = addSelect $ \tbl _ ->
 run :: Decodable b => Hasql.Connection -> Statement st () b -> IO (Either Hasql.Error [b])
 run conn s = Hasql.run go conn
   where
+    dropView name = Hasql.sql $ "DROP VIEW IF EXISTS " <> nameToQuery name <> " CASCADE;"
     go = do
       let (n, q) = statementToQuery s
       q
-      Hasql.query () $ Hasql.statement
+      -- TODO - this should only happen if we want a result.
+      result <- Hasql.query () $ Hasql.statement
         (selectToQuery $ Select Star (FromCls n) NoWhereCls)
         Hasql.unit decode True
+      mapM dropView $ reverse $ namesTill n
+      return result
 
 unTitleCase :: String -> String
 unTitleCase (x:xs) = toLower x : xs
