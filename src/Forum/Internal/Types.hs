@@ -56,6 +56,7 @@ data Stmt (st :: StatementType) where
   CreateView :: Name -> Select -> Stmt st
   Update     :: Encodable a => Name -> [Name] -> a -> Stmt UpdateStmt
   Insert     :: Encodable a => Name -> a -> Stmt UpdateStmt
+  Delete     :: Name -> Stmt UpdateStmt
 
 
 data Select

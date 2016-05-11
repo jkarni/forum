@@ -10,6 +10,9 @@ set = addUpdate
 insert :: Encodable a => a -> Statement UpdateStmt a ()
 insert = addInsert
 
+delete :: Statement UpdateStmt a ()
+delete = addDelete
+
 {-(.==) :: Encodable b => Statement st a b -> b -> Statement st a a-}
 {-(.==) = _-}
 

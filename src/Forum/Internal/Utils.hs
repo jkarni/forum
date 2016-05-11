@@ -31,8 +31,10 @@ addUpdate a = Statement $ (\(n, ns, ss) ->
   (nextName n, [], ss ++ [Update n ns a]))
 
 addInsert :: Encodable a => a -> Statement UpdateStmt a ()
-addInsert as = Statement $ (\(n, ns, ss) ->
-  (n, [], ss ++ [Insert n as]))
+addInsert as = Statement $ (\(n, ns, ss) -> (n, [], ss ++ [Insert n as]))
+
+addDelete :: Statement UpdateStmt a ()
+addDelete = Statement $ \(n, ns, ss) -> (n, [], ss ++ [Delete n])
 
 mkTableStmt :: Name -> [Name] -> Statement st a b
 mkTableStmt n ns = addSelect $ \_ _ -> (Select (Fields ns) (FromCls n) NoWhereCls, ns)

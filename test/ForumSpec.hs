@@ -69,6 +69,12 @@ spec = describe "forum" $ before createTestDb $ after release $ do
       run conn (species # speciesName_)
        `shouldReturn` Right ["Tilia europeae", "Tilia tomentosa", "new"]
 
+  context "deleting" $ do
+
+    it "allows deleting" $ \conn -> do
+      run conn (species # delete) `shouldReturn` Right []
+      run conn (species # speciesName_) `shouldReturn` Right []
+
 
 createTestDb :: IO Connection
 createTestDb = do

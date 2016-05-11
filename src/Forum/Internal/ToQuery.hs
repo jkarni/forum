@@ -15,8 +15,6 @@ import qualified Hasql.Query as Hasql
 import qualified Hasql.Decoders as Hasql
 
 
-import Debug.Trace
-
 -- | The randomly generated string @jVc508YFgIwgy7lAmNXG@
 -- Don't otherwise use this string in your SQL!
 randomName :: Name
@@ -32,23 +30,22 @@ statementToQuery s = (n, sequence_ (stmtToQuery <$> stmts))
 
 stmtToQuery :: Stmt s -> Hasql.Session ()
 stmtToQuery (CreateView n s)
-  = Hasql.sql $ traceShowId
-    $ "CREATE TEMP VIEW "
-    <> nameToQuery n <> " AS ( " <> selectToQuery s <> " ); "
+  = Hasql.sql $ "CREATE TEMP VIEW " <> nameToQuery n
+              <> " AS ( " <> selectToQuery s <> " ); "
 stmtToQuery (Update n ns v)
   = Hasql.query v $ Hasql.statement stmt encode Hasql.unit True
   where
-    stmt = traceShowId $
-     "UPDATE " <> nameToQuery n <>
-     " SET " <> BS.intercalate ", " (nameToQuery <$> ns) <> " = $1;"
+    stmt = "UPDATE " <> nameToQuery n <>
+           " SET " <> BS.intercalate ", " (nameToQuery <$> ns) <> " = $1;"
 stmtToQuery (Insert n v)
   = Hasql.query v $ Hasql.statement stmt encode Hasql.unit True
   where
     addOne new old = old <> ", $" <> toStrict (BS.show new) -- <> ", $" <> old
     mkParams = BS.drop 1 $ foldr addOne "" $ reverse [1 .. (fieldCount v)]
-    stmt = traceShowId $
-     "INSERT INTO " <> nameToQuery n <>
-     " VALUES ( " <> mkParams <> " );"
+    stmt = "INSERT INTO " <> nameToQuery n <>
+           " VALUES ( " <> mkParams <> " );"
+stmtToQuery (Delete n )
+  = Hasql.sql $ "DELETE FROM " <> nameToQuery n <> ";"
 
 nameToQuery :: Name -> ByteString
 nameToQuery (SimpleName s) = s

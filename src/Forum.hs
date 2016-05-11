@@ -16,6 +16,7 @@ module Forum
 
  , set
  , insert
+ , delete
 
  , (#)
  )
